@@ -1,0 +1,38 @@
+def start_recording():
+    if not is_after_6pm():
+        message = "Please try after 6 PM IST."
+        translation_output.delete("1.0", "end")  # Clear existing translation
+        translation_output.insert("end", message)
+        return
+
+    def recognize_speech():
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            message_text.insert(tk.END, "Listening...\n")
+            audio_data = r.record(source, duration=5)  # Record audio for 5 seconds or adjust as needed
+        try:
+            message_text.insert(tk.END, "Recogniting...\n")
+
+            recognized_text = r.recognize_google(audio_data)
+            print("Recognized Text:", recognized_text)
+            text_input.delete("1.0", "end")  # Clear existing text
+            text_input.insert("end", recognized_text)
+
+            # Check if the text starts with "M" or "O"
+            if recognized_text and recognized_text[0].upper() in ['M', 'O']:
+                raise ValueError("Please repeat, avoiding words starting with M or O.")
+
+            # Translate the recognized English text to Hindi
+            translator = Translator()
+            translation = translator.translate(recognized_text, src='en', dest='hi')
+            translated_text = translation.text
+            translation_output.delete("1.0", "end")  # Clear existing translation
+            translation_output.insert("end", translated_text)
+        except sr.UnknownValueError:
+            print("Google Speech Recognition could not understand the audio.")
+        except sr.RequestError as e:
+            print(f"Could not request results from Google Speech Recognition service; {e}")
+        except ValueError as ve:
+            print(f"Error: {ve}")
+            translation_output.delete("1.0", "end")  # Clear existing translation
+            translation_output.insert("end", str(ve))
